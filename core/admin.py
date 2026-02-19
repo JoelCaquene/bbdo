@@ -1,5 +1,6 @@
 from django.contrib import admin, messages
 from django.utils.safestring import mark_safe 
+from django.db.models import Sum
 from .models import (
     CustomUser, PlatformSettings, Level, BankDetails, Deposit, 
     Withdrawal, Task, Roulette, UserLevel, PlatformBankDetails,
@@ -10,11 +11,27 @@ from .models import (
 
 @admin.register(CustomUser)
 class CustomUserAdmin(admin.ModelAdmin):
-    list_display = ('phone_number', 'available_balance', 'free_days_count', 'is_staff', 'is_active', 'date_joined')
+    # Adicionado 'total_convidados_n1' e 'total_investido_equipe' ao list_display
+    list_display = ('phone_number', 'available_balance', 'total_convidados_n1', 'total_investido_equipe', 'free_days_count', 'is_staff', 'is_active', 'date_joined')
     search_fields = ('phone_number', 'invite_code')
     list_filter = ('is_staff', 'is_active', 'level_active')
     ordering = ('-date_joined',)
     list_editable = ('free_days_count',)
+
+    def total_convidados_n1(self, obj):
+        """Conta quantos usuários foram convidados diretamente (Nível 1)"""
+        count = CustomUser.objects.filter(invited_by=obj).count()
+        return f"{count} pessoas"
+    total_convidados_n1.short_description = 'Convidados (N1)'
+
+    def total_investido_equipe(self, obj):
+        """Soma o valor total de depósitos aprovados dos convidados de Nível 1"""
+        total = Deposit.objects.filter(
+            user__invited_by=obj, 
+            is_approved=True
+        ).aggregate(Sum('amount'))['amount__sum'] or 0.00
+        return f"{total:,.2f} KZ"
+    total_investido_equipe.short_description = 'Total Investido (N1)'
 
 # --- CONFIGURAÇÕES DE DEPÓSITO (COM SOMA AUTOMÁTICA) ---
 
