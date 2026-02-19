@@ -29,12 +29,16 @@ if RENDER_EXTERNAL_HOSTNAME:
     if RENDER_EXTERNAL_HOSTNAME not in ALLOWED_HOSTS:
         ALLOWED_HOSTS.append(RENDER_EXTERNAL_HOSTNAME)
 
-# ADICIONADO: Seus domínios personalizados para produção
+# ADICIONADO: Seus domínios personalizados para produção (Corrigido para .pro)
 ALLOWED_HOSTS.extend([
-    'bbdo.art',
-    'www.bbdo.art',
-    'bbdo.onrender.com'
+    'bbdo.pro',
+    'www.bbdo.pro',
+    'bbdo-c31p.onrender.com'
 ])
+
+# FORÇAR REDIRECIONAMENTO PARA WWW (Isso torna o www o principal)
+if not DEBUG:
+    PREPEND_WWW = True
 
 # Configuração de origens confiáveis para CSRF
 CSRF_TRUSTED_ORIGINS = [f"https://{host.strip()}" for host in ALLOWED_HOSTS if host.strip()]
